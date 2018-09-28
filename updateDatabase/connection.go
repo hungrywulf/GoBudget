@@ -8,6 +8,10 @@ import (
 	"net/url"
 )
 
+type Test struct {
+	Information string
+}
+
 const (
 	scheme        = "https"
 	hostName      = "www.alphavantage.co"
@@ -29,27 +33,25 @@ func BuildURL(symbol string) *url.URL {
 	query := urlPath.Query()
 	query.Set(queryFunction, "TIME_SERIES_DAILY_ADJUSTED")
 	query.Set(querySymbol, symbol)
-	query.Set(queryAPIKey, "Your api Key")
+	query.Set(queryAPIKey, "Your Api Key")
 	query.Set(queryDataType, "csv")
 	urlPath.RawQuery = query.Encode()
 	return urlPath
 }
 
 // Request data from the Host
-func Requesting(URL *url.URL) [][]string {
+func Requesting(URL *url.URL) ([][]string, error) {
 	var errRequest error
 	response, err := http.Get(URL.String())
 	if err != nil {
 		log.Println(err)
 	}
 	defer response.Body.Close()
-
 	r := csv.NewReader(response.Body)
 	records, err := r.ReadAll()
 	if err != nil {
 		errRequest = errors.New("Too many requests were sent to Alpha Vantage or Alpha Vantage is Down")
-		log.Fatalf("%v, %v\n", err, errRequest)
+		return nil, errRequest
 	}
-
-	return records
+	return records, nil
 }
